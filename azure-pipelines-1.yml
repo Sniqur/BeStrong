@@ -58,10 +58,6 @@ stages:
           scriptType: bash
           targetType: 'inline'
           inlineScript: |
-          
-            cd $(System.DefaultWorkingDirectory)  # Navigate to the default working directory
-            az login --service-principal -u $(AZURE_CLIENT_ID) -p $(AZURE_CLIENT_SECRET) --tenant $(AZURE_TENANT_ID)
-            az account set --subscription $(AZURE_SUBSCRIPTION_ID)
             az account show  # This verifies the login session
 
       - task: Bash@3
