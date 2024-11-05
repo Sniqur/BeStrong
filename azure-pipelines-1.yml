@@ -6,7 +6,7 @@ trigger:
 pr:
   branches:
     include:
-      - '*'
+      - 'main'
 
 variables:
       - group: AzCred
@@ -58,9 +58,12 @@ stages:
           azureSubscription:  'AzureConnect'
           scriptType: bash
           targetType: 'inline'
-          inlineScript: |
-            az account show  # This verifies the login session
-
+          Script: |
+              az login --service-principal -u $(ARM_CLIENT_ID) -p $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
+              az account set --subscription $(ARM_SUBSCRIPTION_ID)
+              az account show  # This verifies the login session
+          
+            
       - task: Bash@3
         displayName: "Terraform Format"
         inputs:
@@ -76,35 +79,13 @@ stages:
           targetType: 'inline'
           script: |
                terraform init
-        env:
-          ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
-          ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
-          ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-          ARM_TENANT_ID: $(AZURE_TENANT_ID)
+        # env:
+        #   ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
+        #   ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
+        #   ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+        #   ARM_TENANT_ID: $(AZURE_TENANT_ID)
 
 
-
-
-
-
-
-
-      # - task: Bash@3
-      #   displayName: "Terraform Init"
-        
-      #   inputs:
-      #     workingDirectory: $(System.DefaultWorkingDirectory)
-      #     command: init
-      #   env:
-      #     ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-      #     ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-      #     ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-      #     ARM_TENANT_ID: $(ARM_TENANT_ID)
-        #   azureSubscription:  'AzureConnect'
-          # scriptType: bash
-          # targetType: 'inline'
-          # script: |
-          #     terraform init
 
       - task: Bash@3
         displayName: "Terraform Validate"
