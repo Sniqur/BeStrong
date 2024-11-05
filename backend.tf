@@ -12,7 +12,7 @@ terraform {
     storage_account_name = "bestrongsabackend"
     container_name       = "bestrong-cont-back"
     key                  = "terraform.tfstate"
-    use_oidc = true
+   # use_oidc = true
 
   }
 }
