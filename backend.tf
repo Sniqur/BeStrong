@@ -1,6 +1,5 @@
 terraform {
 
-
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
@@ -13,12 +12,5 @@ terraform {
     container_name       = "bestrong-cont-back"
     key                  = "terraform.tfstate"
     # use_oidc = true
-
-
- 
-
- 
-
   }
-
 }
