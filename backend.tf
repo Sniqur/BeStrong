@@ -1,6 +1,5 @@
 terraform {
 
-
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
@@ -14,5 +13,4 @@ terraform {
     key                  = "terraform.tfstate"
     # use_oidc = true
   }
-
 }
