@@ -1,9 +1,9 @@
 variable "sql_admin_user" {
-  type    = string
+  type = string
 
 }
 variable "sql_admin_password" {
-    type    = string
+  type = string
 
 }
 variable "location" {
