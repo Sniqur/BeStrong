@@ -67,6 +67,7 @@ stages:
       - task: Bash@3
         displayName: "Terraform Format"
         inputs:
+          azureSubscription:  'AzureConnect'
           targetType: 'inline'
           script: |
             terraform fmt -check
@@ -75,13 +76,17 @@ stages:
       - task: Bash@3
         displayName: "Terraform Init"
         inputs:
+          azureSubscription:  'AzureConnect'
+          scriptType: bash
           targetType: 'inline'
           script: |
-            terraform init
+              terraform init
 
       - task: Bash@3
         displayName: "Terraform Validate"
         inputs:
+          azureSubscription:  'AzureConnect'
+          scriptType: bash
           targetType: 'inline'
           script: |
             terraform validate -no-color
@@ -89,6 +94,8 @@ stages:
       - task: Bash@3
         displayName: "Terraform Plan"
         inputs:
+          azureSubscription:  'AzureConnect'
+          scriptType: bash
           targetType: 'inline'
           script: |
             terraform plan -no-color
