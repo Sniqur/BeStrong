@@ -46,9 +46,11 @@ stages:
             sudo mv terraform /usr/local/bin/
             terraform -version
       
+
       - task: Bash@3
         displayName: "Azure Login"
         inputs:
+          workingDirectory: $(System.DefaultWorkingDirectory)
           azureSubscription:  'AzureConnect'
           scriptType: bash
           scriptLocation: inlineScript
