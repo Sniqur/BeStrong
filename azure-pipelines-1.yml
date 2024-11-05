@@ -24,6 +24,15 @@ stages:
     steps:
       - checkout: self
 
+
+
+      - script: |
+          echo "Listing contents of /home/vsts/work/1/s:"
+          ls -R /home/vsts/work/1/s  # List all files and directories recursively
+        displayName: "List files in working directory"
+
+ 
+
       - task: UsePythonVersion@0
         inputs:
           versionSpec: '3.x'
