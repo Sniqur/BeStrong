@@ -1,25 +1,25 @@
 variable "sql_admin_user" {
-  type    = string
-    sensitive = true
+  type      = string
+  sensitive = true
 
 }
 variable "sql_admin_password" {
-    type    = string
+  type      = string
   sensitive = true
 
 }
 variable "location" {
   description = "Azure region where resources will be deployed"
   type        = string
-  default = "Sweden Central"
+  default     = "Sweden Central"
 }
 variable "resource_group_name" {
   description = "Name of the resource group"
   type        = string
-    default = "bestrong-rg"
+  default     = "bestrong-rg"
 
 }
 variable "tenant_id" {
-  type = string
+  type    = string
   default = "f128dd7a-1fd1-4e3e-8496-674b767ef552"
 }
