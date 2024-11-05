@@ -49,10 +49,12 @@ stages:
       - task: Bash@3
         displayName: "Azure Login"
         inputs:
-          azureSubscription:  
-        inlinescript: |
-            az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
-            az account set --subscription $AZURE_SUBSCRIPTION_ID
+          azureSubscription:  'AzureConnect'
+          scriptType: bash
+          scriptLocation: inlineScript
+          inlineScript: |
+            az login --service-principal -u $(AZURE_CLIENT_ID) -p $(AZURE_CLIENT_SECRET) --tenant $(AZURE_TENANT_ID)
+            az account set --subscription $(AZURE_SUBSCRIPTION_ID)
       - task: Bash@3
         displayName: "Terraform Format"
         inputs:
