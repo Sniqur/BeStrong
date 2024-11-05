@@ -44,10 +44,9 @@ stages:
       - task: Bash@3
         displayName: "Azure Login"
         inputs:
-          workingDirectory: $(System.DefaultWorkingDirectory)
           azureSubscription:  'AzureConnect'
           scriptType: bash
-          scriptLocation: inlineScript
+          targetType: 'inline'
           inlineScript: |
           
             cd $(System.DefaultWorkingDirectory)  # Navigate to the default working directory
