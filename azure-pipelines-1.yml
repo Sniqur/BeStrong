@@ -1,101 +1,100 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+trigger:
+  branches:
+    include:
+      - main
 
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+pr:
+  branches:
+    include:
+      - '*'
 
-# trigger:
-# - main
+variables:
+  TF_API_TOKEN: $(TF_API_TOKEN)
 
-# pool:
-#   vmImage: ubuntu-latest
-
-# steps:
-# - script: echo Hello, world!
-#   displayName: 'Run a one-line script'
-
-# - script: |
-#     echo Add other tasks to build, test, and deploy your project.
-#     echo See https://aka.ms/yaml
-#   displayName: 'Run a multi-line script'
-
-name:  "Terraform"
-
-on: 
-  push:
-    branches:
-        - main
-  pull_request:
-
-jobs: 
-  terraform:
-    name: "Terraform"
-    runs_on: ubuntu-latest 
+stages:
+- stage: Terraform
+  displayName: "Terraform Pipeline"
+  jobs:
+  - job: terraform
+    displayName: "Terraform Job"
+    pool:
+      vmImage: 'ubuntu-latest'
+    
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      
-      - name: Setup Terrfarom
-        uses: hasicorp/setup-terraform@v1
-        with:
-          # terraform_version: 0.13.0:
-          cli_config_credentials_token: ${{ secrets. TF_API_TOKEN }}
+      - checkout: self
 
-      - name: Terraform Format
-        id: fmt
-        run: terraform fmt -check
-       
-      - name: Terraform Init
-        id: init
-        run: terraform init
-       
-      - name: Terraform Validate
-        id: validate
-        run: terraform validate -no-color
-      
-      
-      - name: Terraform Plan
-        id: plan
-        if: github.event_name == 'pull_request' 
-        run: terraform plan -no-color 
-        continue-on-error: true
-        
-        uses: actions/github-script@0.9.0
-        if: github.event_name == 'pul_request'
-        env:
-          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - task: UsePythonVersion@0
+        inputs:
+          versionSpec: '3.x'
+
+      # Install Terraform manually
+      - task: Bash@3
+        displayName: "Install Terraform"
+        inputs:
+          targetType: 'inline'
           script: |
-            const output = `#### Terraform Format and Style \`${{ steps.fmt.outcome }}\`
-            #### Terraform Initialization  \`${{ steps.init.outcome }}\`
-            #### Terraform Validation \`${{ steps.validate.outputs.stdout }}\`
-            #### Terraform Plan \`${{ steps.plan.outcome }}\`
-            
-            <details><summary>Show Plan</summary>
-
-            \`\`\`\n
-            ${process.env.PLAN}
-            \`\`\`
-            </details>
-
-            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
-        
-            github.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: comtext.repo.repo,
-              body: output
-            })
-      - name: Terraform Plan Status
-        if: steps.plan.outcome == 'failure'
-        run: exit 1
+            T_VERSION="0.13.0"
+            curl -O https://releases.hashicorp.com/terraform/${T_VERSION}/terraform_${T_VERSION}_linux_amd64.zip
+            unzip terraform_${T_VERSION}_linux_amd64.zip
+            sudo mv terraform /usr/local/bin/
+            terraform -version
       
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -auto-approve
-        
+      - task: Bash@3
+        displayName: "Terraform Format"
+        inputs:
+          targetType: 'inline'
+          script: |
+            terraform fmt -check
+        continueOnError: true
+
+      - task: Bash@3
+        displayName: "Terraform Init"
+        inputs:
+          targetType: 'inline'
+          script: |
+            export TF_API_TOKEN=$(TF_API_TOKEN)
+            terraform init
+
+      - task: Bash@3
+        displayName: "Terraform Validate"
+        inputs:
+          targetType: 'inline'
+          script: |
+            terraform validate -no-color
+
+      - task: Bash@3
+        displayName: "Terraform Plan"
+        inputs:
+          targetType: 'inline'
+          script: |
+            terraform plan -no-color
+        condition: eq(variables['Build.Reason'], 'PullRequest')
+        continueOnError: true
+
+      - task: Bash@3
+        displayName: "Post Plan Comment"
+        inputs:
+          targetType: 'inline'
+          script: |
+            echo "#### Terraform Format and Style: $(terraform fmt -check)"
+            echo "#### Terraform Initialization: $(terraform init)"
+            echo "#### Terraform Validation: $(terraform validate)"
+            echo "#### Terraform Plan: $(terraform plan)"
+            # Add more detailed logging or custom comments if needed.
+
+      - task: Bash@3
+        displayName: "Terraform Plan Status"
+        condition: failed()
+        inputs:
+          targetType: 'inline'
+          script: |
+            echo "Terraform Plan failed"
+            exit 1
+
+      - task: Bash@3
+        displayName: "Terraform Apply"
+        inputs:
+          targetType: 'inline'
+          script: |
+            terraform apply -auto-approve
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.Reason'], 'Manual'))
