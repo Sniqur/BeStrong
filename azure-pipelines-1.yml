@@ -19,6 +19,13 @@ stages:
     displayName: "Terraform Job"
     pool:
       vmImage: 'ubuntu-latest'
+      
+
+    variables:
+          AZURE_CLIENT_ID: $(AZURE_CLIENT_ID)
+          AZURE_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
+          AZURE_TENANT_ID: $(AZURE_TENANT_ID)
+          AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
     
     steps:
       - checkout: self
@@ -41,13 +48,9 @@ stages:
       
       - task: Bash@3
         displayName: "Azure Login"
-
-        env:
-          AZURE_CLIENT_ID: $(AZURE_CLIENT_ID)
-          AZURE_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
-          AZURE_TENANT_ID: $(AZURE_TENANT_ID)
-          AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-          script: |
+        inputs:
+          azureSubscription:  
+        inlinescript: |
             az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
             az account set --subscription $AZURE_SUBSCRIPTION_ID
       - task: Bash@3
