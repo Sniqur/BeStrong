@@ -9,7 +9,7 @@ pr:
       - '*'
 
 variables:
-    - group: AzureConnect
+    - group: AzCred
 
 stages:
 - stage: Terraform
