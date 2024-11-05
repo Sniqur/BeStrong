@@ -9,11 +9,7 @@ pr:
       - '*'
 
 variables:
-  TF_API_TOKEN: $(TF_API_TOKEN)
-  AZURE_CLIENT_ID: $(AZURE_CLIENT_ID)
-  AZURE_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
-  AZURE_TENANT_ID: $(AZURE_TENANT_ID)
-  AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+    - group: AzureConnect
 
 stages:
 - stage: Terraform
