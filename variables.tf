@@ -1,11 +1,9 @@
 variable "sql_admin_user" {
-  type      = string
-  sensitive = true
+  type    = string
 
 }
 variable "sql_admin_password" {
-  type      = string
-  sensitive = true
+    type    = string
 
 }
 variable "location" {

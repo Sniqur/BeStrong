@@ -1,0 +1,155 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pr:
+  branches:
+    include:
+      - '*'
+
+variables:
+      - group: AzCred
+
+
+stages:
+- stage: Terraform
+  displayName: "Terraform Pipeline"
+  jobs:
+  - job: terraform
+    displayName: "Terraform Job"
+    pool:
+      vmImage: 'ubuntu-latest'
+             
+    
+    steps:
+      - checkout: self
+
+      - task: UsePythonVersion@0
+        inputs:
+          versionSpec: '3.x'
+
+      - task: Bash@3
+        displayName: "Install Azure CLI on Ubuntu"
+        inputs:
+          targetType: 'inline'
+          script: |
+              # Update package lists and install Azure CLI
+              curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+              # Verify installation
+              az --version
+
+      # Install Terraform manually
+      - task: Bash@3
+        displayName: "Install Terraform"
+        inputs:
+          targetType: 'inline'
+          script: |
+            T_VERSION="1.9.8"
+            curl -O https://releases.hashicorp.com/terraform/${T_VERSION}/terraform_${T_VERSION}_linux_amd64.zip
+            unzip terraform_${T_VERSION}_linux_amd64.zip
+            sudo mv terraform /usr/local/bin/
+            terraform -version
+      
+
+      - task: Bash@3
+        displayName: "Azure Login"
+        inputs:
+          azureSubscription:  'AzureConnect'
+          scriptType: bash
+          targetType: 'inline'
+          inlineScript: |
+            az account show  # This verifies the login session
+
+      - task: Bash@3
+        displayName: "Terraform Format"
+        inputs:
+          azureSubscription:  'AzureConnect'
+          targetType: 'inline'
+          script: |
+            terraform fmt -check
+        continueOnError: true
+
+      - task: Bash@3
+        displayName: "Init"
+        inputs:
+          targetType: 'inline'
+          script: |
+               terraform init
+        env:
+          ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
+          ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
+          ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+          ARM_TENANT_ID: $(AZURE_TENANT_ID)
+
+
+
+
+
+
+
+
+      # - task: Bash@3
+      #   displayName: "Terraform Init"
+        
+      #   inputs:
+      #     workingDirectory: $(System.DefaultWorkingDirectory)
+      #     command: init
+      #   env:
+      #     ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+      #     ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+      #     ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+      #     ARM_TENANT_ID: $(ARM_TENANT_ID)
+        #   azureSubscription:  'AzureConnect'
+          # scriptType: bash
+          # targetType: 'inline'
+          # script: |
+          #     terraform init
+
+      - task: Bash@3
+        displayName: "Terraform Validate"
+        inputs:
+          azureSubscription:  'AzureConnect'
+          scriptType: bash
+          targetType: 'inline'
+          script: |
+            terraform validate -no-color
+
+      - task: Bash@3
+        displayName: "Terraform Plan"
+        inputs:
+          azureSubscription:  'AzureConnect'
+          scriptType: bash
+          targetType: 'inline'
+          script: |
+            terraform plan -no-color
+        condition: eq(variables['Build.Reason'], 'PullRequest')
+        continueOnError: true
+
+      - task: Bash@3
+        displayName: "Post Plan Comment"
+        inputs:
+          targetType: 'inline'
+          script: |
+            echo "#### Terraform Format and Style: $(terraform fmt -check)"
+            echo "#### Terraform Initialization: $(terraform init)"
+            echo "#### Terraform Validation: $(terraform validate)"
+            echo "#### Terraform Plan: $(terraform plan)"
+            # Add more detailed logging or custom comments if needed.
+
+      - task: Bash@3
+        displayName: "Terraform Plan Status"
+        condition: failed()
+        inputs:
+          targetType: 'inline'
+          script: |
+            echo "Terraform Plan failed"
+            exit 1
+
+      - task: Bash@3
+        displayName: "Terraform Apply"
+        inputs:
+          targetType: 'inline'
+          script: |
+            terraform apply -auto-approve
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.Reason'], 'Manual'))
