@@ -13,7 +13,6 @@ terraform {
     container_name       = "bestrong-cont-back"
     key                  = "terraform.tfstate"
    # use_oidc = true
-    features {}
 
   }
 }
