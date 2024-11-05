@@ -71,12 +71,20 @@ stages:
 
       - task: Bash@3
         displayName: "Terraform Init"
+        
         inputs:
-          azureSubscription:  'AzureConnect'
-          scriptType: bash
-          targetType: 'inline'
-          script: |
-              terraform init
+          workingDirectory: $(System.DefaultWorkingDirectory)
+          command: init
+        env:
+          ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+          ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+          ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+          ARM_TENANT_ID: $(ARM_TENANT_ID)
+        #   azureSubscription:  'AzureConnect'
+          # scriptType: bash
+          # targetType: 'inline'
+          # script: |
+          #     terraform init
 
       - task: Bash@3
         displayName: "Terraform Validate"
