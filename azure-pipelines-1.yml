@@ -28,6 +28,15 @@ stages:
         inputs:
           versionSpec: '3.x'
 
+      - task: Bash@3
+        displayName: "Install Azure CLI on Ubuntu"
+
+      - script: |
+          # Update package lists and install Azure CLI
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+          # Verify installation
+          az --version
+
       # Install Terraform manually
       - task: Bash@3
         displayName: "Install Terraform"
