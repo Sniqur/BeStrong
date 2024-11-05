@@ -10,6 +10,10 @@ pr:
 
 variables:
   TF_API_TOKEN: $(TF_API_TOKEN)
+  AZURE_CLIENT_ID: $(AZURE_CLIENT_ID)
+  AZURE_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
+  AZURE_TENANT_ID: $(AZURE_TENANT_ID)
+  AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
 
 stages:
 - stage: Terraform
@@ -19,13 +23,7 @@ stages:
     displayName: "Terraform Job"
     pool:
       vmImage: 'ubuntu-latest'
-      
-
-    variables:
-          AZURE_CLIENT_ID: $(AZURE_CLIENT_ID)
-          AZURE_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
-          AZURE_TENANT_ID: $(AZURE_TENANT_ID)
-          AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+             
     
     steps:
       - checkout: self
