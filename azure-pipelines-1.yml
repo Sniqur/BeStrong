@@ -105,7 +105,7 @@ stages:
           scriptType: bash
           targetType: 'inline'
           script: |
-            echo "yes" | terraform force-unlock e68a3211-70bd-e539-79c2-14371cde93b0 || true
+            echo "yes" | terraform force-unlock 48814ee7-8cf6-f262-9f86-ed5b34cd6cc || true
             terraform plan -no-color
         condition: eq(variables['Build.Reason'], 'PullRequest')
         continueOnError: true
@@ -134,7 +134,7 @@ stages:
         inputs:
           targetType: 'inline'
           script: |
-            echo "yes" | terraform force-unlock  e68a3211-70bd-e539-79c2-14371cde93b0 || true
+            echo "yes" | terraform force-unlock  48814ee7-8cf6-f262-9f86-ed5b34cd6cc || true
             terraform apply -auto-approve
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.Reason'], 'Manual'))
         
