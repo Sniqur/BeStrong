@@ -111,7 +111,7 @@ stages:
           targetType: 'inline'
           script: |
             PLAN_OUTPUT=$(terraform plan -no-color 2>&1)
-            echo "$(PLAN_OUTPUT)" | grep "Lock Info" && echo "$(PLAN_OUTPUT)" > lock_info.log
+            echo "$PLAN_OUTPUT" | grep "Lock Info" && echo "$PLAN_OUTPUT" > lock_info.log
 
       - task: Bash@3
         displayName: "Extract Lock ID and Force Unlock"
