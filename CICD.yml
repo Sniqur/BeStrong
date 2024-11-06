@@ -91,7 +91,6 @@ stages:
       vmImage: 'ubuntu-latest'
     environment:
           name: 'Production'  # Replace with your environment name
-          resourceType: VirtualMachine  # Set this according to your environment’s resource type
     strategy:
       runOnce:
         deploy:
