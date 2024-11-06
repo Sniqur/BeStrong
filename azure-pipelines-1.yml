@@ -120,9 +120,9 @@ stages:
           script: |
             if [ -f lock_info.log ]; then
               LOCK_ID=$(grep -A1 "Lock Info" lock_info.log | grep "ID:" | awk '{print $2}')
-              if [ -n "$(LOCK_ID)" ]; then
-                echo "Force unlocking with Lock ID: $(LOCK_ID)"
-                echo "yes" | terraform force-unlock "$(LOCK_ID)"
+              if [ -n "${LOCK_ID}" ]; then
+                echo "Force unlocking with Lock ID: ${LOCK_ID}"
+                echo "yes" | terraform force-unlock "${LOCK_ID}"
               else
                 echo "No Lock ID found."
               fi
