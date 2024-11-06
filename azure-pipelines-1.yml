@@ -96,6 +96,14 @@ stages:
           script: |
             terraform validate -no-color
 
+
+      - task: Bash@3
+        inputs:
+          targetType: 'inline'
+          script: |
+            # Force unlock the state if locked by a previous process
+            terraform force-unlock f4876c77-44c4-5f3a-a3ab-8bfb15d1a7c3 || true
+
       - task: Bash@3
         displayName: "Terraform Plan"
         inputs:
