@@ -116,7 +116,7 @@ stages:
         inputs:
           targetType: 'inline'
           script: |
-            terraform apply tfplan.out -auto-approve  -lock=false
+            terraform apply  --auto-approve -lock=false tfplan.out
         env:
           TF_VAR_sql_admin_user: $(TF_VAR_sql_admin_user)
           TF_VAR_sql_admin_password: $(TF_VAR_sql_admin_password)
