@@ -80,7 +80,7 @@ stages:
           targetType: 'inline'
           script: |
                terraform init
-               echo "TF_VAR_sql_admin_user is set to: $TF_VAR_sql_admin_user"
+               echo "TF_VAR_sql_admin_user is set to: $(TF_VAR_sql_admin_user)"
         env:
             TF_VAR_sql_admin_user: $(TF_VAR_sql_admin_user)
             TF_VAR_sql_admin_password: $(TF_VAR_sql_admin_password)
