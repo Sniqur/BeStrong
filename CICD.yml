@@ -109,7 +109,7 @@ stages:
                   inputs:
                     targetType: 'inline'
                     script: |
-                              terraform init -reconfigure -lock=false
+                              terraform init  -lock=false
                               terraform validate
                               terraform plan -out=tfplan.out -lock=false
                   env:
@@ -125,4 +125,4 @@ stages:
                     TF_VAR_sql_admin_user: $(TF_VAR_sql_admin_user)
                     TF_VAR_sql_admin_password: $(TF_VAR_sql_admin_password)
                   # Requires manual approval before execution
-                  condition: eq(variables['manual_approval'], 'approved') # Runs only after manual approval
+                  # condition: eq(variables['manual_approval'], 'approved') # Runs only after manual approval
