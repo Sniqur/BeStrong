@@ -85,40 +85,45 @@ stages:
   dependsOn: CI
   condition: succeeded() # Triggered only if CI succeeds
   jobs:
-  - job: terraform_cd
+  - deployment: terraform_cd
     displayName: "CD Job - Terraform Apply"
     pool:
       vmImage: 'ubuntu-latest'
-      environment: 'Production'
-    steps:
-      - checkout: self
+    environment:
+          name: 'Production'  # Replace with your environment name
+          resourceType: VirtualMachine  # Set this according to your environment’s resource type
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+                - checkout: self
 
-      - task: Bash@3
-        displayName: "Azure Login"
-        inputs:
-          targetType: 'inline'
-          script: |
-            az login --service-principal -u $(ARM_CLIENT_ID) -p $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
-            az account set --subscription $(ARM_SUBSCRIPTION_ID)
-      - task: Bash@3      
-        displayName: "Run Terraform Init, Validate, and Plan"
-        inputs:
-          targetType: 'inline'
-          script: |
-                    terraform init -reconfigure -lock=false
-                    terraform validate
-                    terraform plan -out=tfplan.out -lock=false
-        env:
-            TF_VAR_sql_admin_user: $(TF_VAR_sql_admin_user)
-            TF_VAR_sql_admin_password: $(TF_VAR_sql_admin_password)      
-      - task: Bash@3
-        displayName: "Terraform Apply"
-        inputs:
-          targetType: 'inline'
-          script: |
-            terraform apply  --auto-approve -lock=false tfplan.out
-        env:
-          TF_VAR_sql_admin_user: $(TF_VAR_sql_admin_user)
-          TF_VAR_sql_admin_password: $(TF_VAR_sql_admin_password)
-        # Requires manual approval before execution
-          approval: Manual
+                - task: Bash@3
+                  displayName: "Azure Login"
+                  inputs:
+                    targetType: 'inline'
+                    script: |
+                      az login --service-principal -u $(ARM_CLIENT_ID) -p $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
+                      az account set --subscription $(ARM_SUBSCRIPTION_ID)
+                - task: Bash@3      
+                  displayName: "Run Terraform Init, Validate, and Plan"
+                  inputs:
+                    targetType: 'inline'
+                    script: |
+                              terraform init -reconfigure -lock=false
+                              terraform validate
+                              terraform plan -out=tfplan.out -lock=false
+                  env:
+                      TF_VAR_sql_admin_user: $(TF_VAR_sql_admin_user)
+                      TF_VAR_sql_admin_password: $(TF_VAR_sql_admin_password)      
+                - task: Bash@3
+                  displayName: "Terraform Apply"
+                  inputs:
+                    targetType: 'inline'
+                    script: |
+                      terraform apply  --auto-approve -lock=false tfplan.out
+                  env:
+                    TF_VAR_sql_admin_user: $(TF_VAR_sql_admin_user)
+                    TF_VAR_sql_admin_password: $(TF_VAR_sql_admin_password)
+                  # Requires manual approval before execution
+                  condition: eq(variables['manual_approval'], 'approved') # Runs only after manual approval
