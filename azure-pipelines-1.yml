@@ -100,13 +100,21 @@ stages:
           script: |
             az login --service-principal -u $(ARM_CLIENT_ID) -p $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
             az account set --subscription $(ARM_SUBSCRIPTION_ID)
-
+      - task: Bash@3      
+        displayName: "Run Terraform Init, Validate, and Plan"
+        inputs:
+          targetType: 'inline'
+          script: |
+                    terraform init -reconfigure
+                    terraform validate
+                    terraform plan -out=tfplan.out
+        
       - task: Bash@3
         displayName: "Terraform Apply"
         inputs:
           targetType: 'inline'
           script: |
-            terraform apply -auto-approve -input=false -lock=false
+            terraform apply -auto-approve tfplan.out -input=false -lock=false
         env:
           TF_VAR_sql_admin_user: $(TF_VAR_sql_admin_user)
           TF_VAR_sql_admin_password: $(TF_VAR_sql_admin_password)
