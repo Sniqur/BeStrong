@@ -140,7 +140,7 @@ stages:
           scriptType: bash
           targetType: 'inline'
           script: |
-            echo "yes" | terraform force-unlock 1101201d-ae13-27e8-070c-9a91d3c0b329 || true
+        
             terraform plan -no-color -input=false
           # env:
           #   TF_VAR_sql_admin_password: $(TF_VAR_sql_admin_password)
@@ -172,7 +172,6 @@ stages:
         inputs:
           targetType: 'inline'
           script: |
-            echo "yes" | terraform force-unlock  1101201d-ae13-27e8-070c-9a91d3c0b329 || true
             terraform apply -auto-approve -input=false
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.Reason'], 'Manual'))
         
