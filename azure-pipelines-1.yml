@@ -89,6 +89,7 @@ stages:
     displayName: "CD Job - Terraform Apply"
     pool:
       vmImage: 'ubuntu-latest'
+      environment: 'Prod'
     steps:
       - checkout: self
 
@@ -110,4 +111,4 @@ stages:
           TF_VAR_sql_admin_user: $(TF_VAR_sql_admin_user)
           TF_VAR_sql_admin_password: $(TF_VAR_sql_admin_password)
         # Requires manual approval before execution
-        approval: Manual
+          approval: Manual
