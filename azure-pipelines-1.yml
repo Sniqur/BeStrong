@@ -75,7 +75,7 @@ stages:
         continueOnError: true
 
       - task: Bash@3
-        displayName: "Init"
+        displayName: "Terraform Init"
         inputs:
           targetType: 'inline'
           script: |
@@ -108,7 +108,7 @@ stages:
         env:
             TF_VAR_sql_admin_user: $(TF_VAR_sql_admin_user)
             TF_VAR_sql_admin_password: $(TF_VAR_sql_admin_password)
-        condition: eq(variables['Build.Reason'], 'PullReque/st')
+        condition: eq(variables['Build.Reason'], 'PullRequest')
         continueOnError: true
 
       - task: Bash@3
