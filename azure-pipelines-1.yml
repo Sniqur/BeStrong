@@ -123,7 +123,8 @@ stages:
             echo "#### Terraform Format and Style: $(terraform fmt -check)"
             echo "#### Terraform Initialization: $(terraform init)"
             echo "#### Terraform Validation: $(terraform validate)"
-            echo "#### Terraform Plan: $(terraform plan)"
+            echo "#### Running Terraform Plan ####"
+                  terraform plan
             # Add more detailed logging or custom comments if needed.
 
       - task: Bash@3
