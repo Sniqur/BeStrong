@@ -123,8 +123,6 @@ stages:
             echo "#### Terraform Format and Style: $(terraform fmt -check)"
             echo "#### Terraform Initialization: $(terraform init)"
             echo "#### Terraform Validation: $(terraform validate)"
-            echo "#### Running Terraform Plan ####"
-                  terraform plan
             # Add more detailed logging or custom comments if needed.
 
       - task: Bash@3
@@ -142,4 +140,5 @@ stages:
           targetType: 'inline'
           script: |
             terraform apply -auto-approve
-        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.Reason'], 'Manual'))
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+        # eq(variables['Build.Reason'], 'Manual'
