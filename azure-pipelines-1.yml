@@ -21,8 +21,6 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'
              
-    
-    
     steps:
       - checkout: self
 
@@ -31,7 +29,7 @@ stages:
           versionSpec: '3.x'
 
       - task: Bash@3
-        displayName: "Install Azure CLI on Ubuntu"
+        displayName: "Azure CLI "
         inputs:
           targetType: 'inline'
           script: |
@@ -40,7 +38,6 @@ stages:
               # Verify installation
               az --version
 
-      # Install Terraform manually
       - task: Bash@3
         displayName: "Install Terraform"
         inputs:
@@ -73,6 +70,7 @@ stages:
           script: |
             terraform fmt -check
         continueOnError: true
+
 
       - task: Bash@3
         displayName: "Terraform Init"
@@ -110,25 +108,6 @@ stages:
             TF_VAR_sql_admin_password: $(TF_VAR_sql_admin_password)
         condition: eq(variables['Build.Reason'], 'PullRequest')
         continueOnError: true
-
-      - task: Bash@3
-        displayName: "Post Plan Comment"
-        inputs:
-          targetType: 'inline'
-          script: |
-            echo "#### Terraform Format and Style: $(terraform fmt -check)"
-            echo "#### Terraform Initialization: $(terraform init)"
-            echo "#### Terraform Validation: $(terraform validate)"
-            # Add more detailed logging or custom comments if needed.
-
-      - task: Bash@3
-        displayName: "Terraform Plan Status"
-        condition: failed()
-        inputs:
-          targetType: 'inline'
-          script: |
-            echo "Terraform Plan failed"
-            exit 1
 
       - task: Bash@3
         displayName: "Terraform Apply"
