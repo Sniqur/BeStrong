@@ -6,22 +6,21 @@ trigger:
 pr:
   branches:
     include:
-      - 'main'
+      - main
 
 variables:
-      - group: AzCred
-
+  - group: AzCred
 
 stages:
-- stage: Terraform
-  displayName: "Terraform Pipeline"
+
+# Continuous Integration (CI) Stage
+- stage: CI
+  displayName: "Terraform CI Pipeline"
   jobs:
-  - job: terraform
-    displayName: "Terraform Job"
+  - job: terraform_ci
+    displayName: "CI Job - Terraform Init, Validate, and Plan"
     pool:
       vmImage: 'ubuntu-latest'
-             
-    
     steps:
       - checkout: self
 
@@ -30,16 +29,13 @@ stages:
           versionSpec: '3.x'
 
       - task: Bash@3
-        displayName: "Install Azure CLI on Ubuntu"
+        displayName: "Install Azure CLI"
         inputs:
           targetType: 'inline'
           script: |
-              # Update package lists and install Azure CLI
-              curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-              # Verify installation
-              az --version
+            curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+            az --version
 
-      # Install Terraform manually
       - task: Bash@3
         displayName: "Install Terraform"
         inputs:
@@ -50,48 +46,25 @@ stages:
             unzip terraform_${T_VERSION}_linux_amd64.zip
             sudo mv terraform /usr/local/bin/
             terraform -version
-      
 
       - task: Bash@3
         displayName: "Azure Login"
         inputs:
-          azureSubscription:  'AzureConnect'
-          scriptType: bash
-          targetType: 'inline'
-          Script: |
-              az login --service-principal -u $(ARM_CLIENT_ID) -p $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
-              az account set --subscription $(ARM_SUBSCRIPTION_ID)
-              az account show  # This verifies the login session
-          
-            
-      - task: Bash@3
-        displayName: "Terraform Format"
-        inputs:
-          azureSubscription:  'AzureConnect'
           targetType: 'inline'
           script: |
-            terraform fmt -check
-        continueOnError: true
+            az login --service-principal -u $(ARM_CLIENT_ID) -p $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
+            az account set --subscription $(ARM_SUBSCRIPTION_ID)
 
       - task: Bash@3
-        displayName: "Init"
+        displayName: "Terraform Init"
         inputs:
           targetType: 'inline'
           script: |
-               terraform init
-        # env:
-        #   ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
-        #   ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
-        #   ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-        #   ARM_TENANT_ID: $(AZURE_TENANT_ID)
-
-
+            terraform init -lock=false
 
       - task: Bash@3
         displayName: "Terraform Validate"
         inputs:
-          azureSubscription:  'AzureConnect'
-          scriptType: bash
           targetType: 'inline'
           script: |
             terraform validate -no-color
@@ -99,38 +72,53 @@ stages:
       - task: Bash@3
         displayName: "Terraform Plan"
         inputs:
-          azureSubscription:  'AzureConnect'
-          scriptType: bash
           targetType: 'inline'
           script: |
-            terraform plan -no-color
-        condition: eq(variables['Build.Reason'], 'PullRequest')
-        continueOnError: true
+            terraform plan -no-color -input=false -lock=false
+        env:
+          TF_VAR_sql_admin_user: $(TF_VAR_sql_admin_user)
+          TF_VAR_sql_admin_password: $(TF_VAR_sql_admin_password)
+
+# Continuous Deployment (CD) Stage - Triggered only after CI success and requires manual approval
+- stage: CD
+  displayName: "Terraform CD Pipeline"
+  dependsOn: CI
+  condition: succeeded() # Triggered only if CI succeeds
+  jobs:
+  - job: terraform_cd
+    displayName: "CD Job - Terraform Apply"
+    pool:
+      vmImage: 'ubuntu-latest'
+      environment: 'Prod'
+    steps:
+      - checkout: self
 
       - task: Bash@3
-        displayName: "Post Plan Comment"
+        displayName: "Azure Login"
         inputs:
           targetType: 'inline'
           script: |
-            echo "#### Terraform Format and Style: $(terraform fmt -check)"
-            echo "#### Terraform Initialization: $(terraform init)"
-            echo "#### Terraform Validation: $(terraform validate)"
-            echo "#### Terraform Plan: $(terraform plan)"
-            # Add more detailed logging or custom comments if needed.
-
-      - task: Bash@3
-        displayName: "Terraform Plan Status"
-        condition: failed()
+            az login --service-principal -u $(ARM_CLIENT_ID) -p $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
+            az account set --subscription $(ARM_SUBSCRIPTION_ID)
+      - task: Bash@3      
+        displayName: "Run Terraform Init, Validate, and Plan"
         inputs:
           targetType: 'inline'
           script: |
-            echo "Terraform Plan failed"
-            exit 1
-
+                    terraform init -reconfigure -lock=false
+                    terraform validate
+                    terraform plan -out=tfplan.out -lock=false
+        env:
+            TF_VAR_sql_admin_user: $(TF_VAR_sql_admin_user)
+            TF_VAR_sql_admin_password: $(TF_VAR_sql_admin_password)      
       - task: Bash@3
         displayName: "Terraform Apply"
         inputs:
           targetType: 'inline'
           script: |
-            terraform apply -auto-approve
-        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.Reason'], 'Manual'))
+            terraform apply  --auto-approve -lock=false tfplan.out
+        env:
+          TF_VAR_sql_admin_user: $(TF_VAR_sql_admin_user)
+          TF_VAR_sql_admin_password: $(TF_VAR_sql_admin_password)
+        # Requires manual approval before execution
+          approval: Manual
