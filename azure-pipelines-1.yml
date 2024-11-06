@@ -80,6 +80,9 @@ stages:
           targetType: 'inline'
           script: |
                terraform init
+        env:
+            TF_VAR_sql_admin_user: $(TF_VAR_sql_admin_user)
+            TF_VAR_sql_admin_password: $(TF_VAR_sql_admin_password)
 
 
       - task: Bash@3
@@ -129,6 +132,9 @@ stages:
           script: |
         
             terraform plan -no-color -input=false
+        env:
+            TF_VAR_sql_admin_user: $(TF_VAR_sql_admin_user)
+            TF_VAR_sql_admin_password: $(TF_VAR_sql_admin_password)
         # condition: eq(variables['Build.Reason'], 'PullRequest')
         continueOnError: true
 
@@ -157,5 +163,8 @@ stages:
           targetType: 'inline'
           script: |
             terraform apply -auto-approve -input=false
+        env:
+            TF_VAR_sql_admin_user: $(TF_VAR_sql_admin_user)
+            TF_VAR_sql_admin_password: $(TF_VAR_sql_admin_password)
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.Reason'], 'Manual'))
         
