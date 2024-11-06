@@ -80,12 +80,6 @@ stages:
           targetType: 'inline'
           script: |
                terraform init
-        # env:
-        #   ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
-        #   ARM_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
-        #   ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-        #   ARM_TENANT_ID: $(AZURE_TENANT_ID)
-
 
 
       - task: Bash@3
@@ -109,6 +103,36 @@ stages:
               echo "TF_VAR_sql_admin_password is set"
             fi
 
+
+
+      - task: Bash@3
+        displayName: "Run Terraform Plan and Capture Lock Info"
+        inputs:
+          targetType: 'inline'
+          script: |
+            PLAN_OUTPUT=$(terraform plan -no-color 2>&1)
+            echo "$(PLAN_OUTPUT)" | grep "Lock Info" && echo "$(PLAN_OUTPUT)" > lock_info.log
+
+      - task: Bash@3
+        displayName: "Extract Lock ID and Force Unlock"
+        inputs:
+          targetType: 'inline'
+          script: |
+            if [ -f lock_info.log ]; then
+              LOCK_ID=$(grep -A1 "Lock Info" lock_info.log | grep "ID:" | awk '{print $2}')
+              if [ -n "$(LOCK_ID)" ]; then
+                echo "Force unlocking with Lock ID: $(LOCK_ID)"
+                echo "yes" | terraform force-unlock "$(LOCK_ID)"
+              else
+                echo "No Lock ID found."
+              fi
+            else
+              echo "No lock detected; proceeding without unlock."
+            fi
+
+
+
+
       - task: Bash@3
         displayName: "Terraform Plan"
         inputs:
@@ -116,7 +140,7 @@ stages:
           scriptType: bash
           targetType: 'inline'
           script: |
-            echo "yes" | terraform force-unlock 48814ee7-8cf6-f262-9f86-ed5b34cd6cc8 || true
+            echo "yes" | terraform force-unlock 1101201d-ae13-27e8-070c-9a91d3c0b329 || true
             terraform plan -no-color -input=false
           # env:
           #   TF_VAR_sql_admin_password: $(TF_VAR_sql_admin_password)
@@ -148,7 +172,7 @@ stages:
         inputs:
           targetType: 'inline'
           script: |
-            echo "yes" | terraform force-unlock  48814ee7-8cf6-f262-9f86-ed5b34cd6cc8 || true
+            echo "yes" | terraform force-unlock  1101201d-ae13-27e8-070c-9a91d3c0b329 || true
             terraform apply -auto-approve -input=false
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.Reason'], 'Manual'))
         
