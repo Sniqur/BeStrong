@@ -94,9 +94,20 @@ stages:
           azureSubscription:  'AzureConnect'
           scriptType: bash
           targetType: 'inline'
-          script: |
-            terraform validate -no-color
+          script: | 
+            terraform validate -no-color -input=false
 
+      - task: Bash@3
+        displayName: "Verify Environment Variables"
+        inputs:
+          targetType: 'inline'
+          script: |
+            if [ -z "$TF_VAR_sql_admin_password" ]; then
+              echo "Error: TF_VAR_sql_admin_password is not set"
+              exit 1
+            else
+              echo "TF_VAR_sql_admin_password is set"
+            fi
 
       - task: Bash@3
         displayName: "Terraform Plan"
@@ -135,6 +146,6 @@ stages:
           targetType: 'inline'
           script: |
             echo "yes" | terraform force-unlock  48814ee7-8cf6-f262-9f86-ed5b34cd6cc8 || true
-            terraform apply -auto-approve
+            terraform apply -auto-approve -input=false
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.Reason'], 'Manual'))
         
