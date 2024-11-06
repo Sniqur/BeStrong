@@ -118,6 +118,9 @@ stages:
           script: |
             echo "yes" | terraform force-unlock 48814ee7-8cf6-f262-9f86-ed5b34cd6cc8 || true
             terraform plan -no-color -input=false
+          # env:
+          #   TF_VAR_sql_admin_password: $(TF_VAR_sql_admin_password)
+          #   TF_VAR_sql_admin_login: $(TF_VAR_sql_admin_login)
         condition: eq(variables['Build.Reason'], 'PullRequest')
         continueOnError: true
 
