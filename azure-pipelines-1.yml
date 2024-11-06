@@ -80,6 +80,7 @@ stages:
           targetType: 'inline'
           script: |
                terraform init
+               echo "TF_VAR_sql_admin_user is set to: $TF_VAR_sql_admin_user"
         env:
             TF_VAR_sql_admin_user: $(TF_VAR_sql_admin_user)
             TF_VAR_sql_admin_password: $(TF_VAR_sql_admin_password)
@@ -94,31 +95,31 @@ stages:
           script: | 
             terraform validate -no-color 
 
-      - task: Bash@3
-        displayName: "Run Terraform Plan and Capture Lock Info"
-        inputs:
-          targetType: 'inline'
-          script: |
-            PLAN_OUTPUT=$(terraform plan -no-color 2>&1)
-            echo "$PLAN_OUTPUT" | grep "Lock Info" && echo "$PLAN_OUTPUT" > lock_info.log
+      # - task: Bash@3
+      #   displayName: "Run Terraform Plan and Capture Lock Info"
+      #   inputs:
+      #     targetType: 'inline'
+      #     script: |
+      #       PLAN_OUTPUT=$(terraform plan -no-color 2>&1)
+      #       echo "$PLAN_OUTPUT" | grep "Lock Info" && echo "$PLAN_OUTPUT" > lock_info.log
 
 
-      - task: Bash@3
-        displayName: "Extract Lock ID and Force Unlock"
-        inputs:
-          targetType: 'inline'
-          script: |
-            if [ -f lock_info.log ]; then
-              LOCK_ID=$(grep -A1 "Lock Info" lock_info.log | grep "ID:" | awk '{print $2}')
-              if [ -n "${LOCK_ID}" ]; then
-                echo "Force unlocking with Lock ID: ${LOCK_ID}"
-                echo "yes" | terraform force-unlock "${LOCK_ID}"
-              else
-                echo "No Lock ID found."
-              fi
-            else
-              echo "No lock detected; proceeding without unlock."
-            fi
+      # - task: Bash@3
+      #   displayName: "Extract Lock ID and Force Unlock"
+      #   inputs:
+      #     targetType: 'inline'
+      #     script: |
+      #       if [ -f lock_info.log ]; then
+      #         LOCK_ID=$(grep -A1 "Lock Info" lock_info.log | grep "ID:" | awk '{print $2}')
+      #         if [ -n "${LOCK_ID}" ]; then
+      #           echo "Force unlocking with Lock ID: ${LOCK_ID}"
+      #           echo "yes" | terraform force-unlock "${LOCK_ID}"
+      #         else
+      #           echo "No Lock ID found."
+      #         fi
+      #       else
+      #         echo "No lock detected; proceeding without unlock."
+      #       fi
 
 
 
@@ -138,33 +139,33 @@ stages:
         # condition: eq(variables['Build.Reason'], 'PullRequest')
         continueOnError: true
 
-      - task: Bash@3
-        displayName: "Post Plan Comment"
-        inputs:
-          targetType: 'inline'
-          script: |
-            echo "#### Terraform Format and Style: $(terraform fmt -check)"
-            echo "#### Terraform Initialization: $(terraform init)"
-            echo "#### Terraform Validation: $(terraform validate)"
-            # Add more detailed logging or custom comments if needed.
+      # - task: Bash@3
+      #   displayName: "Post Plan Comment"
+      #   inputs:
+      #     targetType: 'inline'
+      #     script: |
+      #       echo "#### Terraform Format and Style: $(terraform fmt -check)"
+      #       echo "#### Terraform Initialization: $(terraform init)"
+      #       echo "#### Terraform Validation: $(terraform validate)"
+      #       # Add more detailed logging or custom comments if needed.
 
-      - task: Bash@3
-        displayName: "Terraform Plan Status"
-        condition: failed()
-        inputs:
-          targetType: 'inline'
-          script: |
-            echo "Terraform Plan failed"
-            exit 1
+      # - task: Bash@3
+      #   displayName: "Terraform Plan Status"
+      #   condition: failed()
+      #   inputs:
+      #     targetType: 'inline'
+      #     script: |
+      #       echo "Terraform Plan failed"
+      #       exit 1
 
-      - task: Bash@3
-        displayName: "Terraform Apply"
-        inputs:
-          targetType: 'inline'
-          script: |
-            terraform apply -auto-approve -input=false
-        env:
-            TF_VAR_sql_admin_user: $(TF_VAR_sql_admin_user)
-            TF_VAR_sql_admin_password: $(TF_VAR_sql_admin_password)
-        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.Reason'], 'Manual'))
+      # - task: Bash@3
+      #   displayName: "Terraform Apply"
+      #   inputs:
+      #     targetType: 'inline'
+      #     script: |
+      #       terraform apply -auto-approve -input=false
+      #   env:
+      #       TF_VAR_sql_admin_user: $(TF_VAR_sql_admin_user)
+      #       TF_VAR_sql_admin_password: $(TF_VAR_sql_admin_password)
+      #   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.Reason'], 'Manual'))
         
