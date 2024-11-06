@@ -102,7 +102,7 @@ stages:
         inputs:
           targetType: 'inline'
           script: |
-            if [ -z "$TF_VAR_sql_admin_password" ]; then
+            if [ -z "$(TF_VAR_sql_admin_password)" ]; then
               echo "Error: TF_VAR_sql_admin_password is not set"
               exit 1
             else
