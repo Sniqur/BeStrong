@@ -105,9 +105,9 @@ stages:
         inputs:
           targetType: 'inline'
           script: |
-                    terraform init -reconfigure
+                    terraform init -reconfigure -lock=false
                     terraform validate
-                    terraform plan -out=tfplan.out
+                    terraform plan -out=tfplan.out -lock=false
         
       - task: Bash@3
         displayName: "Terraform Apply"
