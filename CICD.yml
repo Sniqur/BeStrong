@@ -89,7 +89,7 @@ stages:
     displayName: "CD Job - Terraform Apply"
     pool:
       vmImage: 'ubuntu-latest'
-      environment: 'Prod'
+      environment: 'Production'
     steps:
       - checkout: self
 
