@@ -95,7 +95,7 @@ stages:
           scriptType: bash
           targetType: 'inline'
           script: | 
-            terraform validate -no-color -input=false
+            terraform validate -no-color 
 
       - task: Bash@3
         displayName: "Verify Environment Variables"
@@ -117,7 +117,7 @@ stages:
           targetType: 'inline'
           script: |
             echo "yes" | terraform force-unlock 48814ee7-8cf6-f262-9f86-ed5b34cd6cc8 || true
-            terraform plan -no-color
+            terraform plan -no-color -input=false
         condition: eq(variables['Build.Reason'], 'PullRequest')
         continueOnError: true
 
