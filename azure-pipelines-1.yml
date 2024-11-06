@@ -92,26 +92,13 @@ stages:
             terraform validate -no-color 
 
       - task: Bash@3
-        displayName: "Verify Environment Variables"
-        inputs:
-          targetType: 'inline'
-          script: |
-            if [ -z "$(TF_VAR_sql_admin_password)" ]; then
-              echo "Error: TF_VAR_sql_admin_password is not set"
-              exit 1
-            else
-              echo "TF_VAR_sql_admin_password is set"
-            fi
-
-
-
-      - task: Bash@3
         displayName: "Run Terraform Plan and Capture Lock Info"
         inputs:
           targetType: 'inline'
           script: |
             PLAN_OUTPUT=$(terraform plan -no-color 2>&1)
             echo "$PLAN_OUTPUT" | grep "Lock Info" && echo "$PLAN_OUTPUT" > lock_info.log
+
 
       - task: Bash@3
         displayName: "Extract Lock ID and Force Unlock"
@@ -142,10 +129,7 @@ stages:
           script: |
         
             terraform plan -no-color -input=false
-          # env:
-          #   TF_VAR_sql_admin_password: $(TF_VAR_sql_admin_password)
-          #   TF_VAR_sql_admin_login: $(TF_VAR_sql_admin_login)
-        condition: eq(variables['Build.Reason'], 'PullRequest')
+        # condition: eq(variables['Build.Reason'], 'PullRequest')
         continueOnError: true
 
       - task: Bash@3
