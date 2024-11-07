@@ -24,9 +24,6 @@ stages:
     steps:
       - checkout: self
 
-      - task: UsePythonVersion@0
-        inputs:
-          versionSpec: '3.x'
 
       - task: Bash@3
         displayName: "Install Azure CLI"
